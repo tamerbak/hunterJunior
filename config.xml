@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <widget id="com.manaona.vitonjob.hunter.junior" version="1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>hunterJunior</name>
-  <description>An Ionic Framework and Cordova project.</description>
+  <name>Hunter Junior</name>
+  <description>A VitOnJob Project</description>
   <author email="support@vitonjob.com" href="http://www.vitonjob.com/">VitOnJob</author>
   <content src="index.html"/>
   <access origin="*"/>
