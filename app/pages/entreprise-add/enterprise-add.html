@@ -1,0 +1,54 @@
+<ion-navbar *navbar primary>
+    <ion-title>Opportunité</ion-title>
+</ion-navbar>
+
+<ion-content class="enterprise-home">
+    <ion-list>
+        <ion-card>
+            <ion-card>
+                <ion-list-header>Entreprise</ion-list-header>
+                <ion-item>
+                    <ion-label floating>Nom</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.enterprise.name"></ion-input>
+                </ion-item>
+                <!--ion-item>
+                    <ion-label floating>Adresse</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.enterprise.address"></ion-input>
+                </ion-item-->
+                <ion-item>
+                    <google-places [(bindModelData)]="enterpriseCard.enterprise.address" (onPlaceChanged)='showResults($event)'></google-places>
+                </ion-item>
+            </ion-card>
+
+            <ion-card>
+                <ion-list-header>Employeur</ion-list-header>
+                <ion-item>
+                    <ion-label floating>Nom</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.employer.firstName"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label floating>Prénom</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.employer.lastName"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label floating>Téléphone</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.employer.phone" (keyup)="watchPhone($event)" maxlength="9"></ion-input>
+                </ion-item>
+                <div class="error-box" [hidden]="!showPhoneError()">&#8598; Saisissez les 9 chiffres sans le 0</div>
+                <ion-item>
+                    <ion-label floating>e-Mail</ion-label>
+                    <ion-input type="email" [(ngModel)]="enterpriseCard.employer.mail" (change)="watchEmail($event)"></ion-input>
+                    <div class="error-box" [hidden]="!isMailValide">&#8598; Saisissez un email valide</div>
+                </ion-item>
+            </ion-card>
+            <ion-row>
+                <ion-col text-center>
+                    <button (click)="sendCard()" [disabled]="(!enterpriseCard.employer.mail || !enterpriseCard.employer.phone)">
+                        Envoyer la fiche
+                    </button>
+                </ion-col>
+            </ion-row>
+        </ion-card>
+
+    </ion-list>
+</ion-content>
