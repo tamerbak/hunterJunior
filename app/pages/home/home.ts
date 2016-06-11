@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {NavController} from 'ionic-angular';
-import {EnterpriseAddPage} from '../entreprise-add/enterprise-add';
+import {EnterpriseAddPage} from '../enterprise-add/enterprise-add';
 
 @Component({
   templateUrl: 'build/pages/home/home.html'
