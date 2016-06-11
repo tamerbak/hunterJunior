@@ -14,8 +14,8 @@ export class EnterpriseAddService {
   addEmployerData:any = null;
   addAddressData:any = null;
   addUserData:any = null;
-  private sqlURL : string = 'http://ns389914.ovh.net/vitonjobv1/api/sql';
-  private calloutURL:string = 'http://ns389914.ovh.net/vitonjobv1/api/business';
+  private sqlURL : string = 'http://vitonjobv1.datqvvgppi.us-west-2.elasticbeanstalk.com/api/sql';
+  private calloutURL:string = 'http://vitonjobv1.datqvvgppi.us-west-2.elasticbeanstalk.com/api/business';
 
   constructor(public http: Http) {}
 
