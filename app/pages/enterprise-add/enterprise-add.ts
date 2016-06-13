@@ -61,7 +61,7 @@ export class EnterpriseAddPage {
             let alert = Alert.create({
                 title: 'Hunter Junior',
                 subTitle: 'Identifiez-vous',
-                message: 'Afin que vous serez contacté pour votre promotion, merci de saisir votre e-mail et votre téléphone',
+                message: 'Afin de vous attribuer cette capture d’opportunité, merci de saisir ou de valider votre adresse email et numéro de téléphone',
                 inputs: [
                     {
                         name: 'mail',

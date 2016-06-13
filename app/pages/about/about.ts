@@ -16,9 +16,13 @@ export class AboutPage {
     this.releaseDate = '10 Juin 2016';
     //this.appName = AppVersion.getAppName();
     //this.version = AppVersion.getPackageName();
-    //this.versionCode = AppVersion.getVersionCode();
+
     AppVersion.getVersionNumber().then( _version => {
-       this.versionNumber = _version
+       this.versionNumber = _version;
+      this.versionCode = 6;
+      /*AppVersion.getVersionCode().then(_build => {
+        this.versionCode = _build;
+      });*/
     });
 
   }

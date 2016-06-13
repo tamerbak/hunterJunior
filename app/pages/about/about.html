@@ -2,7 +2,7 @@
   <button menuToggle>
     <ion-icon name="menu"></ion-icon>
   </button>
-  <ion-title>À-propos</ion-title>
+  <ion-title>À propos</ion-title>
 </ion-navbar>
 
 <ion-content>
@@ -15,15 +15,15 @@
     <ion-list no-lines style="margin-bottom: 0px;">
       <ion-item>
         <ion-icon name="calendar" item-left></ion-icon>
-        <ion-label>Date</ion-label>
+        <ion-label>Lancement</ion-label>
         <ion-label text-right>{{releaseDate}}</ion-label>
         <!--ion-datetime displayFormat="DD MMM YYYY" [(ngModel)]="releaseDate" disabled></ion-datetime-->
       </ion-item>
 
       <ion-item>
-        <ion-icon name="apple"  item-left></ion-icon>
-        <ion-label>Version</ion-label>
-        <ion-label text-right>{{versionNumber}}</ion-label>
+        <ion-icon name="android" item-left></ion-icon>
+        <ion-label>Version (build)</ion-label>
+        <ion-label text-right>{{versionNumber}} ({{versionCode}})</ion-label>
       </ion-item>
 
       <!--ion-item>

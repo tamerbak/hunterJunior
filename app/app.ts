@@ -20,7 +20,7 @@ class HunterJunior {
     // used for an example of ngFor and navigation
     this.pages = [
       { title: 'Capturer une opportunité', component: HomePage },
-      { title: 'À-propos ', component: AboutPage }
+      { title: 'À propos ', component: AboutPage }
     ];
 
   }

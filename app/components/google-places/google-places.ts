@@ -1,5 +1,5 @@
-import {Component, Input, Output, EventEmitter, ViewChild} from '@angular/core';
-import {IONIC_DIRECTIVES, Searchbar } from 'ionic-angular';
+import {Component, Input, Output, EventEmitter, ViewChild, ElementRef} from '@angular/core';
+import {IONIC_DIRECTIVES, TextInput } from 'ionic-angular';
 
 /**
  * @author Amal ROCHD
@@ -24,12 +24,13 @@ export class GooglePlaces {
   //output property that fires events to which we can subscribe with an event binding
   @Output() onPlaceChanged: EventEmitter<any> = new EventEmitter();
   //Binds the first result of the component view query 'searchbar' to the 'searchBar' property of the class
-  @ViewChild('searchbar') searchBar: Searchbar;
+  //@ViewChild('searchbar') searchBar: TextInput;
+  @ViewChild('searchbar') searchInput: ElementRef;
   /**
    * @description Component views are initialized here
    */
   ngAfterViewInit() {
-    var input = this.searchBar.inputElement;
+    var input = document.getElementById('searchbar').getElementsByTagName('input')[0];//this.searchInput.nativeElement;//this.searchBar;//.inputElement;
     var acutocomplete = new google.maps.places.Autocomplete(input, this.options);
     acutocomplete.addListener('place_changed', () => {
       this.onPlaceChanged.emit(acutocomplete.getPlace());

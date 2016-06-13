@@ -6,8 +6,16 @@
   style="background: rgba(20,186,166, 0.5);"
 -->
 <div>
-  <ion-searchbar #searchbar  placeholder="Adresse de l'entreprise"
+  <!--ion-searchbar #searchbar  placeholder="Adresse de l'entreprise"
                  cancelButtonText = "Annuler"
                  [ngModel]=bindModelData
-                 (ngModelChange)="updateData($event)"></ion-searchbar>
+                 (ngModelChange)="updateData($event)"></ion-searchbar-->
+  <ion-item style="padding-left: 0px;">
+    <ion-label floating>Adresse</ion-label>
+    <ion-input id="searchbar"
+               cancelButtonText = "Annuler"
+               [(ngModel)]=bindModelData
+               (ionChange)="updateData($event)"></ion-input>
+  </ion-item>
+
 </div>
