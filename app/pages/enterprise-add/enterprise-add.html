@@ -4,7 +4,7 @@
 
 <ion-content class="enterprise-home">
     <ion-list>
-        <ion-card>
+        <ion-card style="background-color: #14baa6">
             <ion-card>
                 <ion-list-header>Entreprise</ion-list-header>
                 <ion-item>
@@ -15,8 +15,21 @@
                     <ion-label floating>Adresse</ion-label>
                     <ion-input [(ngModel)]="enterpriseCard.enterprise.address"></ion-input>
                 </ion-item-->
-                <ion-item>
                     <google-places [(bindModelData)]="enterpriseCard.enterprise.address" (onPlaceChanged)='showResults($event)'></google-places>
+
+            </ion-card>
+
+            <ion-card>
+                <ion-list-header>Offre</ion-list-header>
+                <ion-item>
+                    <ion-label floating>Secteur</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.offer.sector" ></ion-input>
+                    <button small item-right (click)="setSectorsPicker()"><ion-icon name="list"></ion-icon></button>
+                </ion-item>
+                <ion-item>
+                    <ion-label floating>Job</ion-label>
+                    <ion-input [(ngModel)]="enterpriseCard.offer.job" (focus)="presentPopover($event,'job')"></ion-input>
+                    <button small item-right (click)="setJobsPicker()"><ion-icon name="list"></ion-icon></button>
                 </ion-item>
             </ion-card>
 
@@ -41,9 +54,10 @@
                     <div class="error-box" [hidden]="!isMailValide">&#8598; Saisissez un email valide</div>
                 </ion-item>
             </ion-card>
+
             <ion-row>
                 <ion-col text-center>
-                    <button (click)="sendCard()" [disabled]="(!enterpriseCard.employer.mail || !enterpriseCard.employer.phone)">
+                    <button outline (click)="sendCard()" style="border-color: #f4f4f4;color: #f4f4f4" [disabled]="(!enterpriseCard.employer.mail || !enterpriseCard.employer.phone)">
                         Envoyer la fiche
                     </button>
                 </ion-col>

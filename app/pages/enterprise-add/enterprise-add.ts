@@ -1,8 +1,9 @@
-import {Component} from '@angular/core';
-import {NavController, Alert, Toast, SqlStorage, Storage} from 'ionic-angular';
+import {Component, ElementRef, ViewChild} from '@angular/core';
+import {NavController, Alert, Toast, SqlStorage, Storage, Picker, PickerColumnOption, Popover} from 'ionic-angular';
 import {GooglePlaces} from "../../components/google-places/google-places";
 import {EnterpriseAddService} from "../../providers/enterprise-add-service/enterprise-add-service";
 import {HomePage} from "../home/home";
+import {PopoverAutocompletePage} from "../popover-autocomplete/popover-autocomplete";
 
 @Component({
     templateUrl: 'build/pages/enterprise-add/enterprise-add.html',
@@ -16,7 +17,10 @@ export class EnterpriseAddPage {
     private nav:any;
     private service:any;
     private isMailValide:any;
-    private db:any
+    private db:any;
+    private popover:any;
+    private listSectors:any;
+    private listJobs:any;
 
     constructor(private _navController:NavController, _service:EnterpriseAddService) {
         this.service = _service;
@@ -32,15 +36,34 @@ export class EnterpriseAddPage {
             enterprise: {
                 name: '',
                 address: ''
+            },
+            offer: {
+                idSector: '',
+                sector: '',
+                idJob: '',
+                job: ''
             }
-        }
+        };
+
+        this.service.loadSectors().then(listSectors => {
+            if (listSectors) {
+                this.listSectors = listSectors;
+                this.db.set('listSectors', JSON.stringify(listSectors));
+            }
+        });
+
+        this.service.loadJobs().then(listJobs => {
+            if (listJobs) {
+                this.listJobs = listJobs;
+                this.db.set('listJobs', JSON.stringify(listJobs));
+            }
+        });
     }
 
     /**
      * @description function to get the selected result in the google place autocomplete
      */
     showResults(place) {
-        debugger;
         this.selectedPlace = place;
         this.enterpriseCard.enterprise.address = place.formatted_address;
 
@@ -90,7 +113,7 @@ export class EnterpriseAddPage {
                             if ((data.mail) && (data.phone)) {
                                 if ((_mail) && (_phone)) {
                                     // used to hunt..
-                                    if ((_mail===data.mail) && (_phone === data.phone)) {
+                                    if ((_mail === data.mail) && (_phone === data.phone)) {
                                         // same account
                                         this.loadDataOldHunter();
                                     } else {
@@ -129,8 +152,6 @@ export class EnterpriseAddPage {
             });
             this.nav.present(alert);
         });
-
-
     }
 
     /**
@@ -258,4 +279,188 @@ export class EnterpriseAddPage {
         else
             return false
     }
+
+
+    /**
+     * Sectors picker
+     */
+    setSectorsPicker() {
+        let rating = 0;
+        let picker = Picker.create();
+        let options:PickerColumnOption[] = new Array<PickerColumnOption>();
+
+        this.db.get('listSectors').then(listSectors => {
+            if (listSectors) {
+                listSectors = JSON.parse(listSectors);
+                for (let i = 1; i < listSectors.length; i++) {
+                    options.push({
+                        value: listSectors[i].id,
+                        text: listSectors[i].label
+                    })
+                }
+            }
+            let column = {
+                selectedIndex: 0,
+                options: options
+            };
+
+            picker.addColumn(column);
+            picker.addButton('Annuler');
+            picker.addButton({
+                text: 'Valider',
+                handler: data => {
+                    this.enterpriseCard.offer.sector = data.undefined.text;
+                    this.enterpriseCard.offer.idSector = data.undefined.value;
+                    this.filterJobList();
+                    this.enterpriseCard.offer.job = '';
+                    this.enterpriseCard.offer.idJob = '';
+                }
+            });
+            picker.setCssClass('sectorPicker');
+            this.nav.present(picker);
+
+        });
+    }
+
+    /**
+     * Sectors picker
+     */
+    setJobsPicker() {
+        let rating = 0;
+        let picker = Picker.create();
+        let options:PickerColumnOption[] = new Array<PickerColumnOption>();
+
+
+        this.db.get('listJobs').then(
+            list => {
+                if (list) {
+                    list = JSON.parse(list);
+                    let q = this.enterpriseCard.offer.idSector;
+
+                    // if the value is an empty string don't filter the items
+                    if (!(q === '')) {
+                        list = list.filter((v) => {
+                            return (v.idsector == q);
+                        });
+                    }
+
+                    this.listJobs = list;
+                    for (let i = 1; i < this.listJobs.length; i++) {
+                        options.push({
+                            value: this.listJobs[i].id,
+                            text: this.listJobs[i].label
+                        })
+                    }
+                    let column = {
+                        selectedIndex: 0,
+                        options: options
+                    };
+
+                    picker.addColumn(column);
+                    picker.addButton('Annuler');
+                    picker.addButton({
+                        text: 'Valider',
+                        handler: data => {
+                            this.enterpriseCard.offer.job = data.undefined.text;
+                            this.enterpriseCard.offer.idJob = data.undefined.value;
+                        }
+                    });
+                    picker.setCssClass('jobPicker');
+                    this.nav.present(picker);
+
+                }
+            }
+        );
+
+        /*this.service.loadJobs(this.enterpriseCard.offer.idSector).then(listJobs => {
+            if (listJobs) {
+                for (let i = 1; i < listJobs.length; i++) {
+                    options.push({
+                        value: listJobs[i].id,
+                        text: listJobs[i].label
+                    })
+                }
+            }
+            let column = {
+                selectedIndex: 0,
+                options: options
+            };
+
+            picker.addColumn(column);
+            picker.addButton('Annuler');
+            picker.addButton({
+                text: 'Valider',
+                handler: data => {
+                    this.enterpriseCard.offer.job = data.undefined.text;
+                    this.enterpriseCard.offer.idJob = data.undefined.value;
+                }
+            });
+            picker.setCssClass('jobPicker');
+            this.nav.present(picker);
+
+        });*/
+    }
+
+    presentPopover(ev, type) {
+
+        let popover = Popover.create(PopoverAutocompletePage, {
+            list : (type === 'secteur') ? this.listSectors : this.listJobs,
+            type: type,
+            idSector : this.enterpriseCard.offer.idSector
+        });
+        this.nav.present(popover, {
+            ev: ev
+        });
+
+        popover.onDismiss(data => {
+            if (data) {
+                if (type === 'secteur') {
+                    this.enterpriseCard.offer.sector = data.label;
+                    this.enterpriseCard.offer.idSector = data.id;
+                } else if (type === 'job') {
+                    this.enterpriseCard.offer.job = data.label;
+                    this.enterpriseCard.offer.idJob = data.id;
+                }
+            }
+        });
+
+    }
+
+
+    filterSectorList (ev) {
+        var q = ev.target.value;
+
+        // if the value is an empty string don't filter the items
+        if (q.trim() == '') {
+            return;
+        }
+
+        this.listSectors = this.listSectors.filter((v) => {
+            return (v.label.toLowerCase().indexOf(q.toLowerCase()) > -1);
+        })
+    }
+
+    filterJobList () {
+
+        this.db.get('listJobs').then(
+            list => {
+                if (list) {
+                    list = JSON.parse(list);
+                    let q = this.enterpriseCard.offer.idSector;
+
+                    // if the value is an empty string don't filter the items
+                    if (!(q === '')) {
+                        list = list.filter((v) => {
+                            return (v.idsector == q);
+                        });
+                        this.listJobs = list;
+                    }
+
+                }
+            }
+        );
+
+    }
+
+
 }

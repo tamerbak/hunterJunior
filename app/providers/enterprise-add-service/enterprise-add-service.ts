@@ -14,6 +14,8 @@ export class EnterpriseAddService {
   addEmployerData:any = null;
   addAddressData:any = null;
   addUserData:any = null;
+  listSectors:any=null;
+  listJobs:any = null;
   private sqlURL : string = 'http://vitonjobv1.datqvvgppi.us-west-2.elasticbeanstalk.com/api/sql';
   private calloutURL:string = 'http://vitonjobv1.datqvvgppi.us-west-2.elasticbeanstalk.com/api/business';
 
@@ -200,6 +202,88 @@ export class EnterpriseAddService {
   }
 
 
+  /**
+   * @description     loading sector listSectors
+   * @return sector listSectors in the format {id : X, libelle : X}
+   */
+  loadSectors() {
+    var sql = 'select pk_user_metier as id, libelle as label from user_metier';
+    return new Promise(resolve => {
+      // We're using Angular Http provider to request the data,
+      // then on the response it'll map the JSON data to a parsed JS object.
+      // Next we process the data and resolve the promise with the new data.
+      let headers = new Headers();
+      headers.append("Content-Type", 'text/plain');
+      this.http.post(this.sqlURL, sql, {headers: headers})
+          .map(res => res.json())
+          .subscribe(data => {
+            // we've got back the raw data, now generate the core schedule data
+            // and save the data for later reference
+            console.log(data);
+            this.listSectors = data.data;
+            resolve(this.listSectors);
+          });
+    });
+  }
+
+
+  /**
+   * loading jobs listSectors from server
+   * @return jobs listSectors in the format {id : X, idsector : X, libelle : X}
+   */
+  loadJobs(idSector:number) {
+
+    let sql = "";
+    if (idSector && idSector > 0)
+      sql = 'SELECT pk_user_job as id, user_job.libelle as label, fk_user_metier as idsector, user_metier.libelle as libelleSector  ' +
+          'FROM user_job, user_metier ' +
+          'WHERE fk_user_metier = pk_user_metier ' +
+          'AND fk_user_metier =' + idSector;
+    else
+      sql = 'SELECT pk_user_job as id, user_job.libelle as label, fk_user_metier as idsector, user_metier.libelle as labelSector ' +
+          'FROM user_job, user_metier ' +
+          'WHERE fk_user_metier = pk_user_metier';
+
+    return new Promise(resolve => {
+      // We're using Angular Http provider to request the data,
+      // then on the response it'll map the JSON data to a parsed JS object.
+      // Next we process the data and resolve the promise with the new data.
+      let headers = new Headers();
+      headers.append("Content-Type", 'text/plain');
+      this.http.post(this.sqlURL, sql, {headers: headers})
+          .map(res => res.json())
+          .subscribe(data => {
+            // we've got back the raw data, now generate the core schedule data
+            // and save the data for later reference
+            console.log(data);
+            this.listJobs = data.data;
+            resolve(this.listJobs);
+          });
+    });
+  }
+
+  /**
+   * add new Job
+   * @param label
+   * @param idSector
+     */
+  addNewJob(label, idSector) {
+    let sql = "INSERT INTO public.user_job(libelle, fk_user_metier) VALUES ('"+label+"', '"+idSector+"');";
+    return new Promise(resolve => {
+      // We're using Angular Http provider to request the data,
+      // then on the response it'll map the JSON data to a parsed JS object.
+      // Next we process the data and resolve the promise with the new data.
+      let headers = new Headers();
+      headers.append("Content-Type", 'text/plain');
+      this.http.post(this.sqlURL, sql, {headers: headers})
+          .map(res => res.json())
+          .subscribe(data => {
+            // we've got back the raw data, now generate the core schedule data
+            // and save the data for later reference
+            resolve(data);
+          });
+    });
+  }
 
   /**
    * @description function to get the street name from an address returned by the google places service
@@ -264,6 +348,9 @@ export class EnterpriseAddService {
     }
     return pays;
   }
+
+
+
 
 
 
