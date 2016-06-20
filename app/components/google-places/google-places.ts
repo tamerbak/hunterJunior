@@ -31,10 +31,11 @@ export class GooglePlaces {
    */
   ngAfterViewInit() {
     var input = document.getElementById('searchbar').getElementsByTagName('input')[0];//this.searchInput.nativeElement;//this.searchBar;//.inputElement;
-    var acutocomplete = new google.maps.places.Autocomplete(input, this.options);
-    acutocomplete.addListener('place_changed', () => {
-      this.onPlaceChanged.emit(acutocomplete.getPlace());
+    var autocomplete = new google.maps.places.Autocomplete(input, this.options);
+    autocomplete.addListener('place_changed', () => {
+      this.onPlaceChanged.emit(autocomplete.getPlace());
     });
+    
   }
   //input property of the search bar that we can update via property binding
   @Input() bindModelData: any;

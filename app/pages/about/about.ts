@@ -19,7 +19,7 @@ export class AboutPage {
 
     AppVersion.getVersionNumber().then( _version => {
        this.versionNumber = _version;
-      this.versionCode = '8';
+      this.versionCode = '10';
       /*AppVersion.getVersionCode().then(_build => {
         this.versionCode = _build;
       });*/

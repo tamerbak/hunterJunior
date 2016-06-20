@@ -47,7 +47,7 @@ export class PopoverAutocompletePage {
         if (this.navParams.data) {
 
             if (this.navParams.data.idSector){
-                this.service.addNewJob(this.searchQuery, this.navParams.data.idSector);
+                //this.service.addNewJob(this.searchQuery, this.navParams.data.idSector);
                 this.viewCtrl.dismiss({label: this.searchQuery, id: ''});
             } else {
                 let alert = Alert.create({

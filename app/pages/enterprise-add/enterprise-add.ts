@@ -1,5 +1,8 @@
 import {Component, ElementRef, ViewChild} from '@angular/core';
-import {NavController, Alert, Toast, SqlStorage, Storage, Picker, PickerColumnOption, Popover} from 'ionic-angular';
+import {
+    NavController, Alert, Toast, SqlStorage, Storage, Picker, PickerColumnOption, Popover,
+    Platform
+} from 'ionic-angular';
 import {GooglePlaces} from "../../components/google-places/google-places";
 import {EnterpriseAddService} from "../../providers/enterprise-add-service/enterprise-add-service";
 import {HomePage} from "../home/home";
@@ -21,11 +24,17 @@ export class EnterpriseAddPage {
     private popover:any;
     private listSectors:any;
     private listJobs:any;
+    private validators:any;
+    private platform;
+    private isIOS;
 
-    constructor(private _navController:NavController, _service:EnterpriseAddService) {
+    constructor(private _navController:NavController, _service:EnterpriseAddService, platform:Platform) {
         this.service = _service;
         this.nav = _navController;
         this.db = new Storage(SqlStorage);
+        this.platform = platform;
+        this.isIOS = this.platform.is('ios');
+
         this.enterpriseCard = {
             employer: {
                 firstName: '',
@@ -38,11 +47,28 @@ export class EnterpriseAddPage {
                 address: ''
             },
             offer: {
-                idSector: '',
+                idSector: 0,
                 sector: '',
-                idJob: '',
+                idJob: 0,
                 job: ''
+            },
+            hunter: {
+                mail:'',
+                phone:''
             }
+        };
+        this.validators = {
+            isEnterpriseName: false,
+            isAddress: false,
+            isEnterpriseCard: false,
+            isSector: false,
+            isJob: false,
+            isOfferCard: false,
+            isEmployerFirstName: false,
+            isEmployerLastName: false,
+            isPhone: false,
+            isMail: false,
+            isEmployerCard: false
         };
 
         this.service.loadSectors().then(listSectors => {
@@ -66,6 +92,7 @@ export class EnterpriseAddPage {
     showResults(place) {
         this.selectedPlace = place;
         this.enterpriseCard.enterprise.address = place.formatted_address;
+        this.validators.isAddress = true;
 
     }
 
@@ -73,12 +100,14 @@ export class EnterpriseAddPage {
 
         let _phone:string;
         let _mail:string;
+        let _id:string;
 
         this.db.get('userData').then(userData => {
             if (userData) {
                 userData = JSON.parse(userData);
                 _phone = userData.phone;
                 _mail = userData.mail;
+                _id = userData.id;
             }
 
             let alert = Alert.create({
@@ -109,34 +138,22 @@ export class EnterpriseAddPage {
                     {
                         text: 'Ok',
                         handler: data => {
-
                             if ((data.mail) && (data.phone)) {
-                                if ((_mail) && (_phone)) {
-                                    // used to hunt..
-                                    if ((_mail === data.mail) && (_phone === data.phone)) {
-                                        // same account
-                                        this.loadDataOldHunter();
-                                    } else {
-                                        // he changed his phone or mail..
-                                        // Save his other account :
-                                        let userData = {
-                                            phone: data.phone,
-                                            mail: data.mail
-                                        };
-                                        this.db.set('userData', JSON.stringify(userData));
-                                        this.loadDataNewHunter(data.mail, data.phone);
-                                    }
 
-                                } else {
-                                    // first hunt :
-                                    // Save user account :
+                                let hunterData = {phone : data.phone, mail: data.mail};
+                                this.service.sendData(this.enterpriseCard, hunterData).then( opportunityData => {
                                     let userData = {
-                                        phone: data.phone,
-                                        mail: data.mail
+                                        phone: opportunityData.hunter.phone,
+                                        mail: opportunityData.hunter.mail,
+                                        id: opportunityData.hunter.id
                                     };
                                     this.db.set('userData', JSON.stringify(userData));
-                                    this.loadDataNewHunter(data.mail, data.phone);
-                                }
+                                    let toast = Toast.create({
+                                        message: 'Félicitations! vos données sont bien enregistrées.',
+                                        duration: 5000
+                                    });
+                                    this.nav.present(toast);
+                                });
                                 /* Data loaded now we pop to home*/
                                 alert.dismiss().then(() => {
                                     this.nav.pop(HomePage);
@@ -152,67 +169,6 @@ export class EnterpriseAddPage {
             });
             this.nav.present(alert);
         });
-    }
-
-    /**
-     * Loading employer data and ignoring already existed user
-     */
-    loadDataOldHunter() {
-        this.service.addEmployerAccount(
-            this.enterpriseCard.employer.mail,
-            this.enterpriseCard.employer.phone)
-            .then(employerAccountData => {
-                this.service.updateEmployerCivility('',
-                    this.enterpriseCard.employer.lastName,
-                    this.enterpriseCard.employer.firstName,
-                    this.enterpriseCard.enterprise.name, '', '',
-                    employerAccountData.employer.id, employerAccountData.employer.entreprises[0].id)
-                    .then(employerCivilityData => {
-                        this.service.updateEmployerAddress(
-                            employerAccountData.employer.entreprises[0].id,
-                            this.selectedPlace.adr_address)
-                            .then(employerAddressData => {
-                                let toast = Toast.create({
-                                    message: 'Félicitations! vos données sont bien enregistrées.',
-                                    duration: 5000
-                                });
-                                this.nav.present(toast);
-                            })
-                    });
-            })
-    }
-
-    /**
-     * Load new hunter's data before loading employer's one
-     * @param _mail
-     * @param _phone
-     */
-    loadDataNewHunter(_mail, _phone) {
-        this.service.addUserAccount(_mail, _phone)
-            .then(userAccountData => {
-                this.service.addEmployerAccount(
-                    this.enterpriseCard.employer.mail,
-                    this.enterpriseCard.employer.phone)
-                    .then(employerAccountData => {
-                        this.service.updateEmployerCivility('',
-                            this.enterpriseCard.employer.lastName,
-                            this.enterpriseCard.employer.firstName,
-                            this.enterpriseCard.enterprise.name, '', '',
-                            employerAccountData.employer.id, employerAccountData.employer.entreprises[0].id)
-                            .then(employerCivilityData => {
-                                this.service.updateEmployerAddress(
-                                    employerAccountData.employer.entreprises[0].id,
-                                    this.selectedPlace.adr_address)
-                                    .then(employerAddressData => {
-                                        let toast = Toast.create({
-                                            message: 'Félicitations! vos données sont bien enregistrées.',
-                                            duration: 5000
-                                        });
-                                        this.nav.present(toast);
-                                    })
-                            });
-                    })
-            });
     }
 
     /**
@@ -256,10 +212,6 @@ export class EnterpriseAddPage {
             return (this.enterpriseCard.employer.phone.length != 9);
     }
 
-    watchEmail(e) {
-        this.isMailValide = this.checkEmail(e.target.value);
-    }
-
     /**
      * @description check if an email is valid
      * @param id of the email component
@@ -274,8 +226,8 @@ export class EnterpriseAddPage {
      * @description validate the email format
      */
     showEmailError() {
-        if (this.enterpriseCard.employer.email)
-            return !(this.checkEmail(this.enterpriseCard.employer.email));
+        if (this.enterpriseCard.employer.mail)
+            return !(this.checkEmail(this.enterpriseCard.employer.mail));
         else
             return false
     }
@@ -313,7 +265,7 @@ export class EnterpriseAddPage {
                     this.enterpriseCard.offer.idSector = data.undefined.value;
                     this.filterJobList();
                     this.enterpriseCard.offer.job = '';
-                    this.enterpriseCard.offer.idJob = '';
+                    this.enterpriseCard.offer.idJob = 0;
                 }
             });
             picker.setCssClass('sectorPicker');
@@ -373,40 +325,40 @@ export class EnterpriseAddPage {
         );
 
         /*this.service.loadJobs(this.enterpriseCard.offer.idSector).then(listJobs => {
-            if (listJobs) {
-                for (let i = 1; i < listJobs.length; i++) {
-                    options.push({
-                        value: listJobs[i].id,
-                        text: listJobs[i].label
-                    })
-                }
-            }
-            let column = {
-                selectedIndex: 0,
-                options: options
-            };
+         if (listJobs) {
+         for (let i = 1; i < listJobs.length; i++) {
+         options.push({
+         value: listJobs[i].id,
+         text: listJobs[i].label
+         })
+         }
+         }
+         let column = {
+         selectedIndex: 0,
+         options: options
+         };
 
-            picker.addColumn(column);
-            picker.addButton('Annuler');
-            picker.addButton({
-                text: 'Valider',
-                handler: data => {
-                    this.enterpriseCard.offer.job = data.undefined.text;
-                    this.enterpriseCard.offer.idJob = data.undefined.value;
-                }
-            });
-            picker.setCssClass('jobPicker');
-            this.nav.present(picker);
+         picker.addColumn(column);
+         picker.addButton('Annuler');
+         picker.addButton({
+         text: 'Valider',
+         handler: data => {
+         this.enterpriseCard.offer.job = data.undefined.text;
+         this.enterpriseCard.offer.idJob = data.undefined.value;
+         }
+         });
+         picker.setCssClass('jobPicker');
+         this.nav.present(picker);
 
-        });*/
+         });*/
     }
 
     presentPopover(ev, type) {
 
         let popover = Popover.create(PopoverAutocompletePage, {
-            list : (type === 'secteur') ? this.listSectors : this.listJobs,
+            list: (type === 'secteur') ? this.listSectors : this.listJobs,
             type: type,
-            idSector : this.enterpriseCard.offer.idSector
+            idSector: this.enterpriseCard.offer.idSector
         });
         this.nav.present(popover, {
             ev: ev
@@ -417,9 +369,12 @@ export class EnterpriseAddPage {
                 if (type === 'secteur') {
                     this.enterpriseCard.offer.sector = data.label;
                     this.enterpriseCard.offer.idSector = data.id;
+                    this.filterJobList();
+                    this.enterpriseCard.offer.job = '';
+                    this.enterpriseCard.offer.idJob = 0;
                 } else if (type === 'job') {
                     this.enterpriseCard.offer.job = data.label;
-                    this.enterpriseCard.offer.idJob = data.id;
+                    this.enterpriseCard.offer.idJob = data.id ? data.id : 0;
                 }
             }
         });
@@ -427,7 +382,7 @@ export class EnterpriseAddPage {
     }
 
 
-    filterSectorList (ev) {
+    filterSectorList(ev) {
         var q = ev.target.value;
 
         // if the value is an empty string don't filter the items
@@ -440,7 +395,7 @@ export class EnterpriseAddPage {
         })
     }
 
-    filterJobList () {
+    filterJobList() {
 
         this.db.get('listJobs').then(
             list => {
